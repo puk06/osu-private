@@ -1,0 +1,70 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34018.315
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "osu!private", "osu!private\osu!private.csproj", "{2AA08B8A-940D-417E-8EF8-C2E2EA0BA8AB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "osu", "osu", "{B7302D4C-A43F-448B-B3E9-F13C340F2247}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "osu.Game.Rulesets.Catch", "osu\osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj", "{A64CCA85-C99C-4911-987B-84627E6ADCDE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "osu.Game.Rulesets.Mania", "osu\osu.Game.Rulesets.Mania\osu.Game.Rulesets.Mania.csproj", "{513E31C6-4D32-448B-BA55-C8D5E723483E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "osu.Game.Rulesets.Taiko", "osu\osu.Game.Rulesets.Taiko\osu.Game.Rulesets.Taiko.csproj", "{BF984C99-31F7-436A-AF92-3B75BBE425B4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "osu.Game.Rulesets.Osu", "osu\osu.Game.Rulesets.Osu\osu.Game.Rulesets.Osu.csproj", "{3919F42C-9C4A-4326-8E15-A5C2515949CD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "osu.Game", "osu\osu.Game\osu.Game.csproj", "{BA06992F-67DB-4716-BBC9-5CEBDD4006D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu!private.Updater", "osu!private.Updater\osu!private.Updater.csproj", "{8DB441BC-42A7-4FCD-8A84-E7AEC27CAE7E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2AA08B8A-940D-417E-8EF8-C2E2EA0BA8AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AA08B8A-940D-417E-8EF8-C2E2EA0BA8AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AA08B8A-940D-417E-8EF8-C2E2EA0BA8AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AA08B8A-940D-417E-8EF8-C2E2EA0BA8AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A64CCA85-C99C-4911-987B-84627E6ADCDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A64CCA85-C99C-4911-987B-84627E6ADCDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A64CCA85-C99C-4911-987B-84627E6ADCDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A64CCA85-C99C-4911-987B-84627E6ADCDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{513E31C6-4D32-448B-BA55-C8D5E723483E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{513E31C6-4D32-448B-BA55-C8D5E723483E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{513E31C6-4D32-448B-BA55-C8D5E723483E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{513E31C6-4D32-448B-BA55-C8D5E723483E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF984C99-31F7-436A-AF92-3B75BBE425B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF984C99-31F7-436A-AF92-3B75BBE425B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF984C99-31F7-436A-AF92-3B75BBE425B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF984C99-31F7-436A-AF92-3B75BBE425B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3919F42C-9C4A-4326-8E15-A5C2515949CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3919F42C-9C4A-4326-8E15-A5C2515949CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3919F42C-9C4A-4326-8E15-A5C2515949CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3919F42C-9C4A-4326-8E15-A5C2515949CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA06992F-67DB-4716-BBC9-5CEBDD4006D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA06992F-67DB-4716-BBC9-5CEBDD4006D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA06992F-67DB-4716-BBC9-5CEBDD4006D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA06992F-67DB-4716-BBC9-5CEBDD4006D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DB441BC-42A7-4FCD-8A84-E7AEC27CAE7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DB441BC-42A7-4FCD-8A84-E7AEC27CAE7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DB441BC-42A7-4FCD-8A84-E7AEC27CAE7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DB441BC-42A7-4FCD-8A84-E7AEC27CAE7E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A64CCA85-C99C-4911-987B-84627E6ADCDE} = {B7302D4C-A43F-448B-B3E9-F13C340F2247}
+		{513E31C6-4D32-448B-BA55-C8D5E723483E} = {B7302D4C-A43F-448B-B3E9-F13C340F2247}
+		{BF984C99-31F7-436A-AF92-3B75BBE425B4} = {B7302D4C-A43F-448B-B3E9-F13C340F2247}
+		{3919F42C-9C4A-4326-8E15-A5C2515949CD} = {B7302D4C-A43F-448B-B3E9-F13C340F2247}
+		{BA06992F-67DB-4716-BBC9-5CEBDD4006D2} = {B7302D4C-A43F-448B-B3E9-F13C340F2247}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {88C9A090-5956-4CBA-8A77-687162EBA156}
+	EndGlobalSection
+EndGlobal
