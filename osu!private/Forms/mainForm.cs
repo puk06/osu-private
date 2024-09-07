@@ -14,28 +14,29 @@ using System.Threading;
 using OsuParsers.Decoders;
 using ObjectId = LiteDB.ObjectId;
 using Beatmap = OsuParsers.Beatmaps.Beatmap;
+using osu_private.Classes;
 
 namespace osu_private
 {
     public partial class MainForm : Form
     {
-        private readonly StructuredOsuMemoryReader _sreader = new();
-        private readonly OsuBaseAddresses _baseAddresses = new();
+        private readonly StructuredOsuMemoryReader sreader = new();
+        private readonly OsuBaseAddresses baseAddresses = new();
 
         public static string Username;
 
-        private bool _isDbLoaded;
-        private string _osuDirectory;
-        private string _songsPath;
-        private int _currentMode;
-        private OsuMemoryStatus _currentStatus;
-        private DateTime? _startTime;
-        private DateTime? _endTime;
-        private bool _hasEnded;
-        private bool _nowPlaying;
-        private bool _hasChanged;
+        private bool isDirectoryLoaded;
+        private string osuDirectory;
+        private string songsPath;
+        private int currentMode;
+        private OsuMemoryStatus currentStatus;
+        private DateTime? startTime;
+        private DateTime? endTime;
+        private bool hasEnded;
+        private bool nowPlaying;
+        private bool hasChanged;
 
-        private static readonly Dictionary<string, double> GlobalPp = new()
+        private static readonly Dictionary<string, double> globalPp = new()
         {
             {"osu", 0},
             {"taiko", 0},
@@ -43,7 +44,7 @@ namespace osu_private
             {"mania", 0}
         };
 
-        private static readonly Dictionary<string, double> GlobalAcc = new()
+        private static readonly Dictionary<string, double> globalAcc = new()
         {
             {"osu", 0},
             {"taiko", 0},
@@ -51,7 +52,7 @@ namespace osu_private
             {"mania", 0}
         };
 
-        private static readonly Dictionary<string, double> BonusPp = new()
+        private static readonly Dictionary<string, double> bonusPp = new()
         {
             {"osu", 0},
             {"taiko", 0},
@@ -59,7 +60,7 @@ namespace osu_private
             {"mania", 0}
         };
 
-        public static readonly Dictionary<int, string> OsuMods = new()
+        public static readonly Dictionary<int, string> OSU_MODS = new()
         {
             { 0, "NM" },
             { 1, "NF" },
@@ -95,13 +96,13 @@ namespace osu_private
             { 1073741824, "MR" }
         };
 
-        private static readonly string[] GameModes = new[] { "osu", "taiko", "catch", "mania" };
-        private readonly LiteDatabase _db = new("scores.db");
+        private static readonly string[] gameModes = { "osu", "taiko", "catch", "mania" };
+        private readonly LiteDatabase db = new("scores.db");
 
         public MainForm(string username)
         {
             Username = username;
-            Thread thread = new Thread(Loop)
+            Thread thread = new(Loop)
             {
                 IsBackground = true
             };
@@ -114,43 +115,45 @@ namespace osu_private
 
         private void Loop()
         {
-            var collection = _db.GetCollection<PlayerStats>("playerStats");
+            var collection = db.GetCollection<PlayerStats>("playerStats");
             while (true)
             {
                 Thread.Sleep(10);
                 try
                 {
                     if (Process.GetProcessesByName("osu!").Length == 0) continue;
-                    if (!_isDbLoaded)
+                    if (!isDirectoryLoaded)
                     {
                         Process osuProcess = Process.GetProcessesByName("osu!")[0];
-                        _osuDirectory = Path.GetDirectoryName(osuProcess.MainModule.FileName);
+                        osuDirectory = Path.GetDirectoryName(osuProcess.MainModule.FileName);
 
-                        if (string.IsNullOrEmpty(_osuDirectory) || !Directory.Exists(_osuDirectory)) continue;
+                        if (string.IsNullOrEmpty(osuDirectory) || !Directory.Exists(osuDirectory)) continue;
 
-                        _songsPath = GetSongsFolderLocation(_osuDirectory);
-                        _isDbLoaded = true;
+                        songsPath = GetSongsFolderLocation(osuDirectory);
+                        isDirectoryLoaded = true;
                     }
 
-                    if (!_sreader.CanRead) continue;
+                    if (!isDirectoryLoaded) continue;
 
-                    _sreader.TryRead(_baseAddresses.Player);
-                    _sreader.TryRead(_baseAddresses.GeneralData);
-                    _sreader.TryRead(_baseAddresses.Beatmap);
+                    if (!sreader.CanRead) continue;
 
-                    if (_baseAddresses.GeneralData.OsuStatus == OsuMemoryStatus.Playing)
-                        _currentMode = _baseAddresses.Player.Mode;
+                    sreader.TryRead(baseAddresses.Player);
+                    sreader.TryRead(baseAddresses.GeneralData);
+                    sreader.TryRead(baseAddresses.Beatmap);
 
-                    if (_currentStatus == OsuMemoryStatus.Playing &&
-                        _baseAddresses.GeneralData.OsuStatus == OsuMemoryStatus.ResultsScreen && !_baseAddresses.Player.IsReplay)
+                    if (baseAddresses.GeneralData.OsuStatus == OsuMemoryStatus.Playing)
+                        currentMode = baseAddresses.Player.Mode;
+
+                    if (currentStatus == OsuMemoryStatus.Playing &&
+                        baseAddresses.GeneralData.OsuStatus == OsuMemoryStatus.ResultsScreen && !baseAddresses.Player.IsReplay)
                     {
                         //Ranked, Approvedのみ記録をつけるときに消してください
                         //if (_baseAddresses.Beatmap.Status is not (4 or 5)) continue;
 
-                        _hasEnded = false;
-                        _endTime = DateTime.Now;
-                        _currentStatus = _baseAddresses.GeneralData.OsuStatus;
-                        string bannedModstext = "AT,CN,AP,RX,V2,SO,TG";
+                        hasEnded = false;
+                        endTime = DateTime.Now;
+                        currentStatus = baseAddresses.GeneralData.OsuStatus;
+                        string bannedModstext = "AT,CN,AP,RX,SV2,SO,TG";
                         if (!File.Exists("BannedMods.txt"))
                         {
                             var stream = File.Create("BannedMods.txt");
@@ -164,60 +167,59 @@ namespace osu_private
                         }
                         string[] bannedMods = bannedModstext.Split(',')
                             .Where(mod => !string.IsNullOrWhiteSpace(mod) && mod.Length == 2).ToArray();
-                        string[] modCalculate = ParseModsCalculate(_baseAddresses.Player.Mods.Value);
+                        string[] modCalculate = ParseModsCalculate(baseAddresses.Player.Mods.Value);
                         bool bannedmodflag = modCalculate.Any(resultMod => bannedMods.Contains(resultMod));
                         if (bannedmodflag)
                         {
-                            _startTime = null;
-                            _endTime = null;
-                            _currentStatus = _baseAddresses.GeneralData.OsuStatus;
+                            startTime = null;
+                            endTime = null;
+                            currentStatus = baseAddresses.GeneralData.OsuStatus;
                             continue;
                         }
 
-                        string mappath = Path.Combine(_songsPath ?? "", _baseAddresses.Beatmap.FolderName ?? "",
-                            _baseAddresses.Beatmap.OsuFileName ?? "");
+                        string mappath = Path.Combine(songsPath ?? "", baseAddresses.Beatmap.FolderName ?? "",
+                            baseAddresses.Beatmap.OsuFileName ?? "");
                         HitsResult hits = new()
                         {
-                            Hit300 = _baseAddresses.Player.Hit300,
-                            Hit100 = _baseAddresses.Player.Hit100,
-                            Hit50 = _baseAddresses.Player.Hit50,
-                            HitMiss = _baseAddresses.Player.HitMiss,
-                            HitGeki = _baseAddresses.Player.HitGeki,
-                            HitKatu = _baseAddresses.Player.HitKatu,
-                            Combo = _baseAddresses.Player.Combo,
-                            Score = _baseAddresses.Player.Score
+                            Hit300 = baseAddresses.Player.Hit300,
+                            Hit100 = baseAddresses.Player.Hit100,
+                            Hit50 = baseAddresses.Player.Hit50,
+                            HitMiss = baseAddresses.Player.HitMiss,
+                            HitGeki = baseAddresses.Player.HitGeki,
+                            HitKatu = baseAddresses.Player.HitKatu,
+                            Combo = baseAddresses.Player.Combo,
+                            Score = baseAddresses.Player.Score
                         };
 
                         CalculateArgs args = new()
                         {
-                            Accuracy = _baseAddresses.Player.Accuracy,
-                            Combo = _baseAddresses.Player.Combo,
-                            Score = _baseAddresses.Player.Score,
-                            Mods = modCalculate,
-                            NoClassicMod = true
+                            Accuracy = baseAddresses.Player.Accuracy,
+                            Combo = baseAddresses.Player.Combo,
+                            Score = baseAddresses.Player.Score,
+                            Mods = modCalculate
                         };
 
-                        double pp = new PpCalculator(mappath, _currentMode).Calculate(args, hits);
-                        string confirmHash = _baseAddresses.Beatmap.Md5;
+                        double pp = new PpCalculator(mappath, currentMode).Calculate(args, hits);
+                        string confirmHash = baseAddresses.Beatmap.Md5;
                         Beatmap beatmap = BeatmapDecoder.Decode(mappath);
 
-                        string[] mod = ParseMods(_baseAddresses.Player.Mods.Value);
-                        var result = new Score()
+                        string[] mod = ParseMods(baseAddresses.Player.Mods.Value);
+                        ScoreData result = new()
                         {
                             Title = beatmap.MetadataSection.Title + " by " + beatmap.MetadataSection.Artist,
                             Mapper = beatmap.MetadataSection.Creator,
                             Version = beatmap.MetadataSection.Version,
                             Pp = pp,
-                            score = _baseAddresses.Player.Score,
+                            Score = baseAddresses.Player.Score,
                             Mods = string.Join(",", mod),
-                            Acc = _baseAddresses.Player.Accuracy,
-                            Combo = _baseAddresses.Player.Combo,
-                            Hit300 = _baseAddresses.Player.Hit300,
-                            Hit100 = _baseAddresses.Player.Hit100,
-                            Hit50 = _baseAddresses.Player.Hit50,
-                            HitMiss = _baseAddresses.Player.HitMiss,
-                            HitKatu = _baseAddresses.Player.HitKatu,
-                            HitGeki = _baseAddresses.Player.HitGeki,
+                            Acc = baseAddresses.Player.Accuracy,
+                            Combo = baseAddresses.Player.Combo,
+                            Hit300 = baseAddresses.Player.Hit300,
+                            Hit100 = baseAddresses.Player.Hit100,
+                            Hit50 = baseAddresses.Player.Hit50,
+                            HitMiss = baseAddresses.Player.HitMiss,
+                            HitKatu = baseAddresses.Player.HitKatu,
+                            HitGeki = baseAddresses.Player.HitGeki,
                             Date = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"),
                             Hash = confirmHash
                         };
@@ -270,12 +272,12 @@ namespace osu_private
                                     { "catch", 0 },
                                     { "mania", 0 }
                                 },
-                                Scores = new Dictionary<string, List<Score>>
+                                Scores = new Dictionary<string, List<ScoreData>>
                                 {
-                                    { "osu", new List<Score>() },
-                                    { "taiko", new List<Score>() },
-                                    { "catch", new List<Score>() },
-                                    { "mania", new List<Score>() }
+                                    { "osu", new List<ScoreData>() },
+                                    { "taiko", new List<ScoreData>() },
+                                    { "catch", new List<ScoreData>() },
+                                    { "mania", new List<ScoreData>() }
                                 },
                                 ID = ObjectId.NewObjectId()
                             };
@@ -283,130 +285,130 @@ namespace osu_private
                         }
 
                         var userStats = collection.FindOne(Query.EQ("Username", Username));
-                        var resultScore = userStats.Scores[ConvertModeValue(_currentMode)]
+                        var resultScore = userStats.Scores[ConvertModeValue(currentMode)]
                             ?.Find(x => x.Hash == confirmHash);
 
                         if (resultScore != null)
                         {
-                            if ((resultScore.score < result.score &&
+                            if ((resultScore.Score < result.Score &&
                                  resultScore.Mods == string.Join(",", mod)) || result.Pp > resultScore.Pp)
                             {
                                 resultScore.Pp = result.Pp;
-                                resultScore.score = result.score;
+                                resultScore.Score = result.Score;
                                 resultScore.Mods = string.Join(",", mod);
-                                resultScore.Acc = _baseAddresses.Player.Accuracy;
-                                resultScore.Combo = _baseAddresses.Player.Combo;
-                                resultScore.Hit300 = _baseAddresses.Player.Hit300;
-                                resultScore.Hit100 = _baseAddresses.Player.Hit100;
-                                resultScore.Hit50 = _baseAddresses.Player.Hit50;
-                                resultScore.HitMiss = _baseAddresses.Player.HitMiss;
-                                resultScore.HitKatu = _baseAddresses.Player.HitKatu;
-                                resultScore.HitGeki = _baseAddresses.Player.HitGeki;
+                                resultScore.Acc = baseAddresses.Player.Accuracy;
+                                resultScore.Combo = baseAddresses.Player.Combo;
+                                resultScore.Hit300 = baseAddresses.Player.Hit300;
+                                resultScore.Hit100 = baseAddresses.Player.Hit100;
+                                resultScore.Hit50 = baseAddresses.Player.Hit50;
+                                resultScore.HitMiss = baseAddresses.Player.HitMiss;
+                                resultScore.HitKatu = baseAddresses.Player.HitKatu;
+                                resultScore.HitGeki = baseAddresses.Player.HitGeki;
                                 resultScore.Date = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
                             }
                             else
                             {
-                                if (_startTime != null)
+                                if (startTime != null)
                                 {
-                                    var currentPlaytime = userStats.PlaytimeCalculate[ConvertModeValue(_currentMode)];
-                                    var time = (long)(_endTime - _startTime).Value.TotalMilliseconds;
+                                    var currentPlaytime = userStats.PlaytimeCalculate[ConvertModeValue(currentMode)];
+                                    var time = (long)(endTime - startTime).Value.TotalMilliseconds;
                                     string playtime = FormatTime(currentPlaytime + time);
-                                    userStats.Playtime[ConvertModeValue(_currentMode)] = playtime;
-                                    userStats.PlaytimeCalculate[ConvertModeValue(_currentMode)] += time;
+                                    userStats.Playtime[ConvertModeValue(currentMode)] = playtime;
+                                    userStats.PlaytimeCalculate[ConvertModeValue(currentMode)] += time;
                                 }
 
-                                userStats.Playcount[ConvertModeValue(_currentMode)] += 1;
-                                userStats.LastGamemode = _currentMode;
+                                userStats.Playcount[ConvertModeValue(currentMode)] += 1;
+                                userStats.LastGamemode = currentMode;
                                 collection.Update(userStats);
-                                _hasChanged = true;
-                                _startTime = null;
-                                _endTime = null;
-                                _currentStatus = _baseAddresses.GeneralData.OsuStatus;
+                                hasChanged = true;
+                                startTime = null;
+                                endTime = null;
+                                currentStatus = baseAddresses.GeneralData.OsuStatus;
                                 continue;
                             }
                         }
                         else
                         {
-                            userStats.Scores[ConvertModeValue(_currentMode)].Add(result);
+                            userStats.Scores[ConvertModeValue(currentMode)].Add(result);
                         }
 
-                        userStats.Scores[ConvertModeValue(_currentMode)] = userStats
-                            .Scores[ConvertModeValue(_currentMode)].OrderByDescending(x => x.Pp).ToList();
+                        userStats.Scores[ConvertModeValue(currentMode)] = userStats
+                            .Scores[ConvertModeValue(currentMode)].OrderByDescending(x => x.Pp).ToList();
 
-                        double bonusPP = CalculateBonusPp(userStats.Scores[ConvertModeValue(_currentMode)].Count);
-                        double globalPP = CalculateGlobalPp(userStats.Scores[ConvertModeValue(_currentMode)]) + bonusPP;
-                        double globalACC = CalculateGlobalAcc(userStats.Scores[ConvertModeValue(_currentMode)]);
+                        double calculateBonusPp = CalculateBonusPp(userStats.Scores[ConvertModeValue(currentMode)].Count);
+                        double calculateGlobalPp = CalculateGlobalPp(userStats.Scores[ConvertModeValue(currentMode)]) + calculateBonusPp;
+                        double calculateGlobalAcc = CalculateGlobalAcc(userStats.Scores[ConvertModeValue(currentMode)]);
 
-                        if (_startTime != null)
+                        if (startTime != null)
                         {
-                            var currentPlaytime = userStats.PlaytimeCalculate[ConvertModeValue(_currentMode)];
-                            var time = (long)(_endTime - _startTime).Value.TotalMilliseconds;
+                            var currentPlaytime = userStats.PlaytimeCalculate[ConvertModeValue(currentMode)];
+                            var time = (long)(endTime - startTime).Value.TotalMilliseconds;
                             string playtime = FormatTime(currentPlaytime + time);
-                            userStats.Playtime[ConvertModeValue(_currentMode)] = playtime;
-                            userStats.PlaytimeCalculate[ConvertModeValue(_currentMode)] += time;
+                            userStats.Playtime[ConvertModeValue(currentMode)] = playtime;
+                            userStats.PlaytimeCalculate[ConvertModeValue(currentMode)] += time;
                         }
 
-                        userStats.Playcount[ConvertModeValue(_currentMode)] += 1;
-                        userStats.BonusPp[ConvertModeValue(_currentMode)] = bonusPP;
-                        userStats.GlobalPp[ConvertModeValue(_currentMode)] = globalPP;
-                        userStats.GlobalAcc[ConvertModeValue(_currentMode)] = globalACC;
-                        userStats.LastGamemode = _currentMode;
+                        userStats.Playcount[ConvertModeValue(currentMode)] += 1;
+                        userStats.BonusPp[ConvertModeValue(currentMode)] = calculateBonusPp;
+                        userStats.GlobalPp[ConvertModeValue(currentMode)] = calculateGlobalPp;
+                        userStats.GlobalAcc[ConvertModeValue(currentMode)] = calculateGlobalAcc;
+                        userStats.LastGamemode = currentMode;
                         collection.Update(userStats);
-                        _hasChanged = true;
+                        hasChanged = true;
                     }
 
-                    if (_currentStatus != OsuMemoryStatus.Playing && _baseAddresses.GeneralData.OsuStatus == OsuMemoryStatus.Playing) _nowPlaying = true;
-                    if (_currentStatus is OsuMemoryStatus.Playing && _baseAddresses.GeneralData.OsuStatus is OsuMemoryStatus.ResultsScreen or OsuMemoryStatus.SongSelect or OsuMemoryStatus.MultiplayerRoom) _hasEnded = true;
+                    if (currentStatus != OsuMemoryStatus.Playing && baseAddresses.GeneralData.OsuStatus == OsuMemoryStatus.Playing) nowPlaying = true;
+                    if (currentStatus is OsuMemoryStatus.Playing && baseAddresses.GeneralData.OsuStatus is OsuMemoryStatus.ResultsScreen or OsuMemoryStatus.SongSelect or OsuMemoryStatus.MultiplayerRoom) hasEnded = true;
 
-                    if (_nowPlaying)
+                    if (nowPlaying)
                     {
-                        _nowPlaying = false;
-                        _startTime = DateTime.Now;
+                        nowPlaying = false;
+                        startTime = DateTime.Now;
                     }
 
-                    if (_hasEnded)
+                    if (hasEnded)
                     {
-                        _hasEnded = false;
-                        if (collection.FindOne(Query.EQ("Username", Username)) == null || _startTime == null)
+                        hasEnded = false;
+                        if (collection.FindOne(Query.EQ("Username", Username)) == null || startTime == null)
                         {
-                            _startTime = null;
-                            _endTime = null;
+                            startTime = null;
+                            endTime = null;
                         }
                         else
                         {
-                            _endTime = DateTime.Now;
+                            endTime = DateTime.Now;
 
-                            if (_endTime - _startTime < TimeSpan.FromSeconds(10))
+                            if (endTime - startTime < TimeSpan.FromSeconds(10))
                             {
-                                _startTime = null;
-                                _endTime = null;
-                                _currentStatus = _baseAddresses.GeneralData.OsuStatus;
+                                startTime = null;
+                                endTime = null;
+                                currentStatus = baseAddresses.GeneralData.OsuStatus;
                                 continue;
                             }
 
                             var userStats = collection.FindOne(Query.EQ("Username", Username));
 
-                            if (_startTime != null)
+                            if (startTime != null)
                             {
-                                var currentPlaytime = userStats.PlaytimeCalculate[ConvertModeValue(_currentMode)];
-                                var time = (long)(_endTime - _startTime).Value.TotalMilliseconds;
+                                var currentPlaytime = userStats.PlaytimeCalculate[ConvertModeValue(currentMode)];
+                                var time = (long)(endTime - startTime).Value.TotalMilliseconds;
                                 string playtime = FormatTime(currentPlaytime + time);
-                                userStats.Playtime[ConvertModeValue(_currentMode)] = playtime;
-                                userStats.PlaytimeCalculate[ConvertModeValue(_currentMode)] += time;
+                                userStats.Playtime[ConvertModeValue(currentMode)] = playtime;
+                                userStats.PlaytimeCalculate[ConvertModeValue(currentMode)] += time;
                             }
 
-                            userStats.Playcount[ConvertModeValue(_currentMode)] += 1;
-                            userStats.LastGamemode = _currentMode;
+                            userStats.Playcount[ConvertModeValue(currentMode)] += 1;
+                            userStats.LastGamemode = currentMode;
                             collection.Update(userStats);
-                            _hasChanged = true;
-                            _startTime = null;
-                            _endTime = null;
-                            _currentStatus = _baseAddresses.GeneralData.OsuStatus;
+                            hasChanged = true;
+                            startTime = null;
+                            endTime = null;
+                            currentStatus = baseAddresses.GeneralData.OsuStatus;
                             continue;
                         }
                     }
 
-                    _currentStatus = _baseAddresses.GeneralData.OsuStatus;
+                    currentStatus = baseAddresses.GeneralData.OsuStatus;
 
                 }
                 catch (Exception e)
@@ -414,6 +416,7 @@ namespace osu_private
                     MessageBox.Show($"エラーが発生しました。\nエラー内容: {e}", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+            // ReSharper disable once FunctionNeverReturns
         }
 
         private async void FormLoop()
@@ -421,18 +424,19 @@ namespace osu_private
             while (true)
             {
                 await Task.Delay(10);
-                if (!_hasChanged) continue;
+                if (!hasChanged) continue;
                 await Task.Delay(100);
                 UpdateFormData();
             }
+            // ReSharper disable once FunctionNeverReturns
         }
 
         private async void UpdateFormData(bool modeChanged = false)
         {
             try
             {
-                _hasChanged = false;
-                var collection = _db.GetCollection<PlayerStats>("playerStats");
+                hasChanged = false;
+                var collection = db.GetCollection<PlayerStats>("playerStats");
                 var userdata = collection.FindOne(Query.EQ("Username", Username));
 
                 if (userdata == null) return;
@@ -473,7 +477,7 @@ namespace osu_private
                     if (itemTitle.Length > 110) itemTitle = itemTitle[..110] + "...";
                     if (versionName.Length > 110) versionName = versionName[..110] + "...";
 
-                    string resultInfo = $"Score: {userdata.Scores[ConvertMode(modeValue.Text)][i].score:#,0} / {userdata.Scores[ConvertMode(modeValue.Text)][i].Combo}x   {hitsInfo}";
+                    string resultInfo = $"Score: {userdata.Scores[ConvertMode(modeValue.Text)][i].Score:#,0} / {userdata.Scores[ConvertMode(modeValue.Text)][i].Combo}x   {hitsInfo}";
                     BestPerformance.Items.Add($"#{i + 1}");
                     BestPerformance.Items.Add(itemTitle);
                     BestPerformance.Items.Add(versionName);
@@ -485,45 +489,45 @@ namespace osu_private
                 changePPValue.Text =
                     Math.Abs(Math.Round(
                         userdata.GlobalPp[ConvertMode(modeValue.Text)] -
-                        GlobalPp[ConvertMode(modeValue.Text)], 2)) == 0
+                        globalPp[ConvertMode(modeValue.Text)], 2)) == 0
                         ? ""
-                        : $"{(Math.Round(userdata.GlobalPp[ConvertMode(modeValue.Text)] - GlobalPp[ConvertMode(modeValue.Text)], 2) >= 0 ? "+" : "-")} {Math.Abs(Math.Round(userdata.GlobalPp[ConvertMode(modeValue.Text)] - GlobalPp[ConvertMode(modeValue.Text)], 2))}pp";
+                        : $"{(Math.Round(userdata.GlobalPp[ConvertMode(modeValue.Text)] - globalPp[ConvertMode(modeValue.Text)], 2) >= 0 ? "+" : "-")} {Math.Abs(Math.Round(userdata.GlobalPp[ConvertMode(modeValue.Text)] - globalPp[ConvertMode(modeValue.Text)], 2))}pp";
                 changePPValue.ForeColor =
                     Math.Round(
                         userdata.GlobalPp[ConvertMode(modeValue.Text)] -
-                        GlobalPp[ConvertMode(modeValue.Text)], 2) >= 0
+                        globalPp[ConvertMode(modeValue.Text)], 2) >= 0
                         ? Color.ForestGreen
                         : Color.Red;
                 changeACCValue.Text =
                     Math.Abs(Math.Round(
                         userdata.GlobalAcc[ConvertMode(modeValue.Text)] -
-                        GlobalAcc[ConvertMode(modeValue.Text)], 2)) == 0
+                        globalAcc[ConvertMode(modeValue.Text)], 2)) == 0
                         ? ""
-                        : $"{(Math.Round(userdata.GlobalAcc[ConvertMode(modeValue.Text)] - GlobalAcc[ConvertMode(modeValue.Text)], 2) >= 0 ? "+" : "-")} {Math.Abs(Math.Round(userdata.GlobalAcc[ConvertMode(modeValue.Text)] - GlobalAcc[ConvertMode(modeValue.Text)], 2))}%";
+                        : $"{(Math.Round(userdata.GlobalAcc[ConvertMode(modeValue.Text)] - globalAcc[ConvertMode(modeValue.Text)], 2) >= 0 ? "+" : "-")} {Math.Abs(Math.Round(userdata.GlobalAcc[ConvertMode(modeValue.Text)] - globalAcc[ConvertMode(modeValue.Text)], 2))}%";
                 changeACCValue.ForeColor =
                     Math.Round(
                         userdata.GlobalAcc[ConvertMode(modeValue.Text)] -
-                        GlobalAcc[ConvertMode(modeValue.Text)], 2) >= 0
+                        globalAcc[ConvertMode(modeValue.Text)], 2) >= 0
                         ? Color.ForestGreen
                         : Color.Red;
                 changeBonusPPValue.Text =
                     Math.Abs(Math.Round(
                         userdata.BonusPp[ConvertMode(modeValue.Text)] -
-                        BonusPp[ConvertMode(modeValue.Text)], 2)) == 0
+                        bonusPp[ConvertMode(modeValue.Text)], 2)) == 0
                         ? ""
-                        : $"{(Math.Round(userdata.BonusPp[ConvertMode(modeValue.Text)] - BonusPp[ConvertMode(modeValue.Text)], 2) >= 0 ? "+" : "-")} {Math.Abs(Math.Round(userdata.BonusPp[ConvertMode(modeValue.Text)] - BonusPp[ConvertMode(modeValue.Text)], 2))}pp";
+                        : $"{(Math.Round(userdata.BonusPp[ConvertMode(modeValue.Text)] - bonusPp[ConvertMode(modeValue.Text)], 2) >= 0 ? "+" : "-")} {Math.Abs(Math.Round(userdata.BonusPp[ConvertMode(modeValue.Text)] - bonusPp[ConvertMode(modeValue.Text)], 2))}pp";
                 changeBonusPPValue.ForeColor =
                     Math.Round(
                         userdata.BonusPp[ConvertMode(modeValue.Text)] -
-                        BonusPp[ConvertMode(modeValue.Text)], 2) >= 0
+                        bonusPp[ConvertMode(modeValue.Text)], 2) >= 0
                         ? Color.ForestGreen
                         : Color.Red;
 
-                foreach (var mode in GameModes)
+                foreach (var mode in gameModes)
                 {
-                    GlobalPp[mode] = userdata.GlobalPp[mode];
-                    GlobalAcc[mode] = userdata.GlobalAcc[mode];
-                    BonusPp[mode] = userdata.BonusPp[mode];
+                    globalPp[mode] = userdata.GlobalPp[mode];
+                    globalAcc[mode] = userdata.GlobalAcc[mode];
+                    bonusPp[mode] = userdata.BonusPp[mode];
                 }
 
                 errorText.Text = "";
@@ -541,25 +545,25 @@ namespace osu_private
 
         private static double CalculateBonusPp(int scoresLength) => (417 - 1.0 / 3.0) * (1 - Math.Pow(0.995, Math.Min(1000, scoresLength)));
 
-        private static double CalculateGlobalPp(IReadOnlyList<Score> scores)
+        private static double CalculateGlobalPp(IReadOnlyList<ScoreData> scores)
         {
-            double globalPp = 0;
+            double calculateGlobalPp = 0;
             for (int i = 0; i < Math.Min(scores.Count, 100); i++)
             {
-                globalPp += scores[i].Pp * Math.Pow(0.95, i);
+                calculateGlobalPp += scores[i].Pp * Math.Pow(0.95, i);
             }
-            return globalPp;
+            return calculateGlobalPp;
         }
 
-        private static double CalculateGlobalAcc(IReadOnlyList<Score> scores)
+        private static double CalculateGlobalAcc(IReadOnlyList<ScoreData> scores)
         {
-            double globalAcc = 0;
+            double calculateGlobalAcc = 0;
             for (int i = 0; i < Math.Min(scores.Count, 100); i++)
             {
-                globalAcc += scores[i].Acc * Math.Pow(0.95, i);
+                calculateGlobalAcc += scores[i].Acc * Math.Pow(0.95, i);
             }
-            globalAcc *= 100 / (20 * (1 - Math.Pow(0.95, scores.Count)));
-            return Math.Round(globalAcc) / 100;
+            calculateGlobalAcc *= 100 / (20 * (1 - Math.Pow(0.95, scores.Count)));
+            return Math.Round(calculateGlobalAcc) / 100;
         }
 
         private static string[] ParseMods(int mods)
@@ -568,7 +572,7 @@ namespace osu_private
             for (int i = 0; i < 32; i++)
             {
                 int bit = 1 << i;
-                if ((mods & bit) == bit) activeMods.Add(OsuMods[bit]);
+                if ((mods & bit) == bit) activeMods.Add(OSU_MODS[bit]);
             }
             if (activeMods.Contains("NC") && activeMods.Contains("DT")) activeMods.Remove("DT");
             if (activeMods.Count == 0) activeMods.Add("NM");
@@ -581,7 +585,7 @@ namespace osu_private
             for (int i = 0; i < 32; i++)
             {
                 int bit = 1 << i;
-                if ((mods & bit) == bit) activeMods.Add(OsuMods[bit]);
+                if ((mods & bit) == bit) activeMods.Add(OSU_MODS[bit]);
             }
             if (activeMods.Contains("NC") && activeMods.Contains("DT")) activeMods.Remove("NC");
             return activeMods.ToArray();
@@ -637,7 +641,7 @@ namespace osu_private
 
         private void deleteScore_Click(object sender, EventArgs e)
         {
-            var collection = _db.GetCollection<PlayerStats>("playerStats");
+            var collection = db.GetCollection<PlayerStats>("playerStats");
             if (collection.FindOne(Query.EQ("Username", Username)) == null)
             {
                 MessageBox.Show("スコアが見つかりませんでした。 \n 削除機能は新しくユーザーを作成してから１つ記録を作ることで有効化されます。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -653,7 +657,7 @@ namespace osu_private
 
         private void MainForm_FormClosing(object sender, EventArgs args)
         {
-            _db.Dispose();
+            db.Dispose();
             Application.Exit();
         }
     }
@@ -669,17 +673,18 @@ namespace osu_private
         public Dictionary<string, string> Playtime { get; set; }
         public Dictionary<string, long> PlaytimeCalculate { get; set; }
         public Dictionary<string, int> Playcount { get; set; }
-        public Dictionary<string, List<Score>> Scores { get; set; }
+        public Dictionary<string, List<ScoreData>> Scores { get; set; }
+        // ReSharper disable once InconsistentNaming
         public ObjectId ID { get; set; }
     }
 
-    public class Score
+    public class ScoreData
     {
         public string Title { get; set; }
         public string Mapper { get; set; }
         public string Version { get; set; }
         public double Pp { get; set; }
-        public int score { get; set; }
+        public int Score { get; set; }
         public string Mods { get; set; }
         public double Acc { get; set; }
         public int Combo { get; set; }
