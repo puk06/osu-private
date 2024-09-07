@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Windows.Forms;
 
-namespace osu_private
+namespace osu_private.Forms
 {
     partial class RegistrationForm
     {

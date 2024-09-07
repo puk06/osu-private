@@ -647,7 +647,43 @@ namespace osu_private
                 MessageBox.Show("スコアが見つかりませんでした。 \n 削除機能は新しくユーザーを作成してから１つ記録を作ることで有効化されます。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            new DeleteForm().ShowDialog();
+
+            /*
+             * すべての記録が
+             * ---------------------------------
+             * ５行(ここだとindexが1-5の時にここのスコアを削除する) scoreindex = 0
+             * ---------------------------------
+             * 5行(ここだと7-11の時にここのスコアを削除する) scoreindex = 1
+             * ---------------------------------
+             * 5行(ここだと13-17の時にここのスコアを削除する) scoreindex = 2
+             * ---------------------------------
+             * という感じでlistboxに入っているので、
+             * 選択位置にあるスコアを削除するには、まず1引いて５行、線、５行、線、５行、線、という感じで変換
+             * 選択位置が含まれている5行の部分のスコアを削除する
+             *
+             */
+            int GetScoreIndex(int selectedIndex)
+            {
+                // Subtract the total number of separators before the selected item
+                int blockSize = 5; // Each block contains 5 scores
+                int separatorCount = selectedIndex / (blockSize + 1); // Each separator adds one extra index
+
+                // Calculate the score index
+                int scoreIndex = (selectedIndex - separatorCount) / blockSize;
+
+                return scoreIndex;
+            }
+
+            var selected = BestPerformance.SelectedIndex;
+            var scoreIndex = GetScoreIndex(selected);
+            var mode = ConvertModeValue(modeValue.SelectedIndex);
+            var userStats = collection.FindOne(Query.EQ("Username", Username));
+            var score = userStats.Scores[mode][scoreIndex];
+            userStats.Scores[mode].Remove(score);
+            userStats.Scores[mode] = userStats.Scores[mode].OrderByDescending(x => x.Pp).ToList();
+            collection.Update(userStats);
+            hasChanged = true;
+            MessageBox.Show("スコアを削除しました。", "削除完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void listBox1_KeyDown(object sender, KeyEventArgs e)

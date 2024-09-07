@@ -9,6 +9,10 @@ using osu.Game.Rulesets.Taiko;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using osu.Game.Beatmaps;
+using osu.Game.Rulesets.Catch.Objects;
+using osu.Game.Rulesets.Osu.Objects;
+using osu.Game.Rulesets.Taiko.Objects;
 
 namespace osu_private.Classes
 {
@@ -50,9 +54,29 @@ namespace osu_private.Classes
             };
             var difficultyCalculator = ruleset.CreateDifficultyCalculator(workingBeatmap);
             var difficultyAttributes = difficultyCalculator.Calculate(mods);
+
+            // Fix the combo for osu! standard
+            var maxCombo = GetMaxCombo(beatmap, mode);
+            difficultyAttributes.MaxCombo = maxCombo;
+
             var performanceCalculator = ruleset.CreatePerformanceCalculator();
             var performanceAttributes = performanceCalculator?.Calculate(resultScoreInfo, difficultyAttributes);
             return performanceAttributes?.Total ?? 0;
+        }
+
+        private static int GetMaxCombo(IBeatmap beatmap, int mode)
+        {
+            return mode switch
+            {
+                0 => beatmap.HitObjects.Count +
+                     beatmap.HitObjects.OfType<Slider>().Sum(s => s.NestedHitObjects.Count - 1),
+                1 => beatmap.HitObjects.OfType<Hit>().Count(),
+                2 => beatmap.HitObjects.Count(h => h is Fruit) + beatmap.HitObjects.OfType<JuiceStream>()
+                    .SelectMany(j => j.NestedHitObjects)
+                    .Count(h => h is not TinyDroplet),
+                3 => beatmap.HitObjects.Count,
+                _ => throw new ArgumentException("Invalid ruleset ID provided.")
+            };
         }
 
         private static Dictionary<HitResult, int> GenerateHitResultsForCurrent(HitsResult hits, int mode)

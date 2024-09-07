@@ -7,17 +7,17 @@ using System.Windows.Forms;
 using LiteDB;
 using Octokit;
 
-namespace osu_private
+namespace osu_private.Forms
 {
     public partial class RegistrationForm : Form
     {
-        private const string CurrentVersion = "1.3.0-Release";
-        public LiteDatabase db = new("scores.db");
+        private const string CURRENT_VERSION = "1.3.0-Release";
+        public LiteDatabase Db = new("scores.db");
 
         public RegistrationForm()
         {
             InitializeComponent();
-            var collection = db.GetCollection<PlayerStats>("playerStats");
+            var collection = Db.GetCollection<PlayerStats>("playerStats");
             var userNames = collection.FindAll().Select(playerStats => playerStats.Username).ToList();
             GithubUpdateChecker();
             foreach (var user in userNames)
@@ -31,7 +31,7 @@ namespace osu_private
             }
             else
             {
-                MessageBox.Show("新規ユーザーのようです！このゲームについて軽く説明します。\n\n1. ユーザー名は、選べばそのユーザーのデータが読み込めて、新しい名前を入力したらユーザーが作成されます\n\n2. 新しいユーザーで、記録をつけなかった場合はそのユーザー名は保存されません！記録をつけるとデータが作成されます！\n\n3. pp計算式は2024/04/23のものを使っています。\n\n4. 完全にオフラインで実行可能です。PCにネット環境が無くても動作します！osuでのログインも必要ありません！\n\n5. プライベートサーバーのように、GlobalPPやBonusPPなどの計算を行います！タイムアタックなどに使ってください！\n ※プレイが終わった後、すぐ選曲画面に戻るのでは無く、リザルト画面が表示され、PPが反映されたら戻るようにしてください！", "ゲームの説明", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("新規ユーザーのようです！このゲームについて軽く説明します。\n\n1. ユーザー名は、選べばそのユーザーのデータが読み込めて、新しい名前を入力したらユーザーが作成されます\n\n2. 新しいユーザーで、記録をつけなかった場合はそのユーザー名は保存されません！記録をつけるとデータが作成されます！\n\n3. pp計算式は2024/09/08時点のStableのものを使っています。\n\n4. 完全にオフラインで実行可能です。PCにネット環境が無くても動作します！osuでのログインも必要ありません！\n\n5. プライベートサーバーのように、GlobalPPやBonusPPなどの計算を行います！タイムアタックなどに使ってください！\n ※プレイが終わった後、すぐ選曲画面に戻るのでは無く、リザルト画面が表示され、PPが反映されたら戻るようにしてください！", "ゲームの説明", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -43,7 +43,7 @@ namespace osu_private
                 return;
             }
 
-            db.Dispose();
+            Db.Dispose();
             MainForm mainForm = new MainForm(usernameForm.Text);
             mainForm.Show();
             Hide();
@@ -53,9 +53,9 @@ namespace osu_private
         {
             try
             {
-                var latestRelease = await GetVersion(CurrentVersion);
-                if (latestRelease == CurrentVersion) return;
-                DialogResult result = MessageBox.Show($"最新バージョンがあります！\n\n現在: {CurrentVersion} \n更新後: {latestRelease}\n\nダウンロードしますか？", "アップデートのお知らせ", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                var latestRelease = await GetVersion(CURRENT_VERSION);
+                if (latestRelease == CURRENT_VERSION) return;
+                DialogResult result = MessageBox.Show($"最新バージョンがあります！\n\n現在: {CURRENT_VERSION} \n更新後: {latestRelease}\n\nダウンロードしますか？", "アップデートのお知らせ", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
                 if (result != DialogResult.Yes) return;
 
                 if (!File.Exists("./Updater/osu!private.Updater.exe"))
@@ -68,7 +68,7 @@ namespace osu_private
                 ProcessStartInfo args = new()
                 {
                     FileName = $"\"{updaterPath}\"",
-                    Arguments = CurrentVersion,
+                    Arguments = CURRENT_VERSION,
                     UseShellExecute = true
                 };
 

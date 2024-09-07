@@ -1,40 +1,50 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0-windows7.0</TargetFramework>
-    <OutputType>WinExe</OutputType>
-    <RootNamespace>osu_private</RootNamespace>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <UseWindowsForms>true</UseWindowsForms>
-    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationIcon>osu.ico</ApplicationIcon>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <FileAlignment>4096</FileAlignment>
-    <Optimize>True</Optimize>
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <FileAlignment>4096</FileAlignment>
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-  <ItemGroup>
-    <Content Include="osu.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="LiteDB" Version="5.0.19" />
-    <PackageReference Include="Octokit" Version="8.1.1" />
-    <PackageReference Include="OsuMemoryDataProvider" Version="0.10.3" />
-    <PackageReference Include="OsuParsers" Version="1.7.1" />
-    <PackageReference Include="ProcessMemoryDataFinder" Version="0.8.5" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\osu\osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj" />
-    <ProjectReference Include="..\osu\osu.Game.Rulesets.Mania\osu.Game.Rulesets.Mania.csproj" />
-    <ProjectReference Include="..\osu\osu.Game.Rulesets.Osu\osu.Game.Rulesets.Osu.csproj" />
-    <ProjectReference Include="..\osu\osu.Game.Rulesets.Taiko\osu.Game.Rulesets.Taiko.csproj" />
-    <ProjectReference Include="..\osu\osu.Game\osu.Game.csproj" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0-windows7.0</TargetFramework>
+		<OutputType>WinExe</OutputType>
+		<RootNamespace>osu_private</RootNamespace>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<UseWindowsForms>true</UseWindowsForms>
+		<ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+	</PropertyGroup>
+	<PropertyGroup>
+		<ApplicationIcon>osu.ico</ApplicationIcon>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<FileAlignment>4096</FileAlignment>
+		<Optimize>True</Optimize>
+		<DebugType>full</DebugType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<FileAlignment>4096</FileAlignment>
+		<DebugType>full</DebugType>
+	</PropertyGroup>
+	<ItemGroup>
+		<Content Include="osu.ico" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="LiteDB" Version="5.0.21" />
+		<PackageReference Include="Octokit" Version="13.0.1" />
+		<PackageReference Include="OsuMemoryDataProvider" Version="0.10.3" />
+		<PackageReference Include="OsuParsers" Version="1.7.1" />
+		<PackageReference Include="ProcessMemoryDataFinder" Version="0.8.5" />
+		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\osu\osu.Game.Rulesets.Catch\osu.Game.Rulesets.Catch.csproj" />
+		<ProjectReference Include="..\osu\osu.Game.Rulesets.Mania\osu.Game.Rulesets.Mania.csproj" />
+		<ProjectReference Include="..\osu\osu.Game.Rulesets.Osu\osu.Game.Rulesets.Osu.csproj" />
+		<ProjectReference Include="..\osu\osu.Game.Rulesets.Taiko\osu.Game.Rulesets.Taiko.csproj" />
+		<ProjectReference Include="..\osu\osu.Game\osu.Game.csproj" />
+	</ItemGroup>
+	<Target Name="CopyAndRunBuildJs" AfterTargets="AfterBuild">
+		<!-- Copy build.js to the output directory -->
+		<Copy SourceFiles="build.js" DestinationFolder="$(OutDir)" />
+
+		<!-- Run node build.js with the output directory as the working directory -->
+		<Exec Command="node build.js" WorkingDirectory="$(OutDir)" />
+
+		<!-- Run RealtimePPUR.exe from the bin/build directory -->
+		<!-- <Exec Command="RealtimePPUR.exe" WorkingDirectory="bin\build" /> -->
+	</Target>
 </Project>

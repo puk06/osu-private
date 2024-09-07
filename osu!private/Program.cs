@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Forms;
+using osu_private.Forms;
 
 namespace osu_private
 {
