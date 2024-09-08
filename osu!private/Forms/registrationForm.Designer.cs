@@ -31,58 +31,61 @@ namespace osu_private.Forms
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RegistrationForm));
-            this.button1 = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.usernameForm = new System.Windows.Forms.ComboBox();
-            this.SuspendLayout();
+            ComponentResourceManager resources = new ComponentResourceManager(typeof(RegistrationForm));
+            button1 = new Button();
+            label1 = new Label();
+            usernameForm = new ComboBox();
+            SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Font = new System.Drawing.Font("メイリオ", 12F);
-            this.button1.Location = new System.Drawing.Point(105, 73);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(123, 43);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Play osu!";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            button1.Font = new System.Drawing.Font("メイリオ", 12F);
+            button1.Location = new System.Drawing.Point(117, 55);
+            button1.Margin = new Padding(4, 4, 4, 4);
+            button1.Name = "button1";
+            button1.Size = new System.Drawing.Size(144, 43);
+            button1.TabIndex = 0;
+            button1.Text = "Play osu!";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("メイリオ", 10F);
-            this.label1.Location = new System.Drawing.Point(8, 28);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(91, 21);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "ユーザー名 :";
+            label1.AutoSize = true;
+            label1.Font = new System.Drawing.Font("メイリオ", 10F);
+            label1.Location = new System.Drawing.Point(8, 17);
+            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(91, 21);
+            label1.TabIndex = 2;
+            label1.Text = "ユーザー名 :";
             // 
             // usernameForm
             // 
-            this.usernameForm.Font = new System.Drawing.Font("メイリオ", 10F);
-            this.usernameForm.FormattingEnabled = true;
-            this.usernameForm.Location = new System.Drawing.Point(105, 25);
-            this.usernameForm.Name = "usernameForm";
-            this.usernameForm.Size = new System.Drawing.Size(205, 28);
-            this.usernameForm.TabIndex = 3;
+            usernameForm.Font = new System.Drawing.Font("メイリオ", 10F);
+            usernameForm.FormattingEnabled = true;
+            usernameForm.Location = new System.Drawing.Point(107, 13);
+            usernameForm.Margin = new Padding(4, 4, 4, 4);
+            usernameForm.Name = "usernameForm";
+            usernameForm.Size = new System.Drawing.Size(259, 28);
+            usernameForm.TabIndex = 3;
             // 
-            // registrationForm
+            // RegistrationForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(340, 128);
-            this.Controls.Add(this.usernameForm);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.button1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MaximizeBox = false;
-            this.Name = "RegistrationForm";
-            this.Text = "ユーザー名の選択";
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(379, 111);
+            Controls.Add(usernameForm);
+            Controls.Add(label1);
+            Controls.Add(button1);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 4, 4, 4);
+            MaximizeBox = false;
+            Name = "RegistrationForm";
+            Text = "ユーザー名の選択";
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

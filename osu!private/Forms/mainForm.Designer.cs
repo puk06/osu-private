@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace osu_private
+namespace osu_private.Forms
 {
     partial class MainForm
     {
