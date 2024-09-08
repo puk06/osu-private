@@ -11,7 +11,7 @@ namespace osu_private.Forms
 {
     public partial class RegistrationForm : Form
     {
-        private const string CURRENT_VERSION = "1.3.0-Release";
+        private const string CURRENT_VERSION = "1.0.0-Release";
         public LiteDatabase Db = new("scores.db");
 
         public RegistrationForm()
@@ -58,17 +58,21 @@ namespace osu_private.Forms
                 DialogResult result = MessageBox.Show($"最新バージョンがあります！\n\n現在: {CURRENT_VERSION} \n更新後: {latestRelease}\n\nダウンロードしますか？", "アップデートのお知らせ", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
                 if (result != DialogResult.Yes) return;
 
-                if (!File.Exists("./Updater/osu!private.Updater.exe"))
+                if (!File.Exists("./Updater/Software Updater.exe"))
                 {
-                    MessageBox.Show("アップデーターが見つかりませんでした。手動でダウンロードしてください。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("アップデーターが見つかりませんでした。手動でダウンロードしてください。", "エラー", MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
                     return;
                 }
 
-                string updaterPath = Path.GetFullPath("./Updater/osu!private.Updater.exe");
+                string updaterPath = Path.GetFullPath("./Updater/Software Updater.exe");
+                const string author = "puk06";
+                const string repository = "osu-private";
+                const string executableName = "osu!private";
                 ProcessStartInfo args = new()
                 {
                     FileName = $"\"{updaterPath}\"",
-                    Arguments = CURRENT_VERSION,
+                    Arguments = $"\"{latestRelease}\" \"{author}\" \"{repository}\" \"{executableName}\"",
                     UseShellExecute = true
                 };
 
