@@ -594,8 +594,9 @@ namespace osu_private.Forms
 
         private static string FormatTime(long time)
         {
+
             var hours = time / 3600000;
-            var minutes = time / 60000;
+            var minutes = (time % 3600000) / 60000;
             return $"{hours}h {minutes}m";
         }
 
