@@ -13,6 +13,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Catch.Objects;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Taiko.Objects;
+using osu.Game.Rulesets.Osu.Mods;
 
 namespace osu_private.Classes
 {
@@ -35,9 +36,10 @@ namespace osu_private.Classes
 
         private static Mod[] GetMods(Ruleset ruleset, CalculateArgs args)
         {
-            if (args.Mods.Length == 0) return Array.Empty<Mod>();
+            if (args.Mods.Length == 0) return ruleset.CreateAllMods().ToList().Where(m => m is OsuModClassic).ToArray();
             var availableMods = ruleset.CreateAllMods().ToList();
-            return args.Mods.Select(modString => availableMods.FirstOrDefault(m => string.Equals(m.Acronym, modString.ToLower(), StringComparison.CurrentCultureIgnoreCase))).Where(newMod => newMod != null).ToArray();
+            var mods = args.Mods.Select(modString => availableMods.FirstOrDefault(m => string.Equals(m.Acronym, modString, StringComparison.CurrentCultureIgnoreCase))).Where(newMod => newMod != null).ToArray();
+            return mods.Append(new OsuModClassic()).ToArray();
         }
 
         public double Calculate(CalculateArgs args, HitsResult hits)

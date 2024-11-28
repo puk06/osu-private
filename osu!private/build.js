@@ -14,12 +14,13 @@ const OSU_LIBRARY = [
     "osuTK.dll",
     "Realm.dll",
     "Newtonsoft.Json.dll",
+    "nunit.framework.dll",
+    "ppy.ManagedBass.dll"
 ];
 
 const SOFTWARE_LIBRARY = [
     "MongoDB.Bson.dll",
     "LiteDB.dll",
-    "Octokit.dll",
     "OsuMemoryDataProvider.dll",
     "ProcessMemoryDataFinder.dll",
     "OsuParsers.dll"
