@@ -1,0 +1,22 @@
+This software uses the following third-party libraries:
+
+- Microsoft.CSharp (.NET Runtime)
+  https://github.com/dotnet/runtime  
+  Licensed under the MIT License  
+  https://github.com/dotnet/runtime/blob/main/LICENSE.TXT
+
+- LiteDB
+  License: MIT License
+  License URL: https://github.com/litedb-org/LiteDB/blob/master/LICENSE
+
+- OsuMemoryDataProvider
+  License: MIT License
+  License URL: https://github.com/Piotrekol/ProcessMemoryDataFinder/blob/master/LICENSE
+
+- OsuParsers
+  License: MIT License
+  License URL: https://github.com/mrflashstudio/OsuParsers/blob/master/LICENSE
+
+- ProcessMemoryDataFinder
+  License: MIT License
+  License URL: https://github.com/Piotrekol/ProcessMemoryDataFinder/blob/master/LICENSE
